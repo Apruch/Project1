@@ -158,24 +158,42 @@ function render(){
   var title = document.getElementById('topbar-title');
   var sub = document.getElementById('topbar-sub');
   closeSheet();
+  var statsEl = document.getElementById('topbar-stats');
   if(STATE.page === 'beranda'){
     var s = STATE.session || getSession();
     title.textContent = getGreeting() + (s && s.nama ? ', ' + s.nama : '') + '!';
     sub.textContent = DB.fmtTgl(DB.todayISO()) + (s && s.warung ? ' \u00b7 ' + s.warung : '');
+    statsEl.innerHTML = renderTopbarStats();
     el.innerHTML = renderBeranda();
   } else if(STATE.page === 'bahan'){
     title.textContent = 'Bahan Baku';
     sub.textContent = 'Master data & indikator stok';
+    statsEl.innerHTML = '';
     el.innerHTML = renderBahan();
   } else if(STATE.page === 'mutasi'){
     title.textContent = 'Mutasi Stok';
     sub.textContent = 'Barang masuk & keluar';
+    statsEl.innerHTML = '';
     el.innerHTML = renderMutasi();
   } else if(STATE.page === 'keuangan'){
     title.textContent = 'Manajemen Keuangan';
     sub.textContent = 'Pemasukan, pengeluaran & laba rugi';
+    statsEl.innerHTML = '';
     el.innerHTML = renderKeuangan();
   }
+}
+
+// Statistik pemasukan/pengeluaran/laba-rugi digabung ke dalam satu shape biru (topbar)
+function renderTopbarStats(){
+  var today = DB.todayISO();
+  var lr = DB.hitungLabaRugi(today, today);
+  var html = '<div class="tb-stat-grid">';
+  html += '<div class="tb-stat-card"><div class="tb-stat-label">Pemasukan Hari Ini</div><div class="tb-stat-val">'+DB.rp(lr.totalPemasukan)+'</div></div>';
+  html += '<div class="tb-stat-card"><div class="tb-stat-label">Pengeluaran Hari Ini</div><div class="tb-stat-val neg">'+DB.rp(lr.totalPengeluaran)+'</div></div>';
+  html += '</div>';
+  html += '<div class="tb-lr-row"><span class="tb-lr-label">LABA / RUGI HARI INI</span>';
+  html += '<span class="tb-lr-val'+(lr.labaRugi<0?' neg':'')+'">'+DB.rp(lr.labaRugi)+'</span></div>';
+  return html;
 }
 
 function toast(msg){
@@ -190,18 +208,8 @@ function toast(msg){
 function renderBeranda(){
   var kritis = DB.bahan.filter(function(b){ return DB.statusStok(b) === 'kritis'; });
   var habis = DB.bahan.filter(function(b){ return DB.statusStok(b) === 'habis'; });
-  var today = DB.todayISO();
-  var lr = DB.hitungLabaRugi(today, today);
 
   var html = '';
-  html += '<div class="stat-grid">';
-  html += '<div class="stat-card"><div class="stat-label">Pemasukan Hari Ini</div><div class="stat-val pos">'+DB.rp(lr.totalPemasukan)+'</div></div>';
-  html += '<div class="stat-card"><div class="stat-label">Pengeluaran Hari Ini</div><div class="stat-val neg">'+DB.rp(lr.totalPengeluaran)+'</div></div>';
-  html += '</div>';
-  html += '<div class="card" style="margin-top:2px;">';
-  html += '<div class="card-row"><span style="font-size:12.5px;font-weight:700;color:var(--text-mid);">LABA / RUGI HARI INI</span>';
-  html += '<span style="font-size:17px;font-weight:800;" class="'+(lr.labaRugi>=0?'stat-val pos':'stat-val neg')+'">'+DB.rp(lr.labaRugi)+'</span></div></div>';
-
   if(habis.length || kritis.length){
     html += '<div class="sec-title">Peringatan Stok</div>';
     habis.forEach(function(b){
