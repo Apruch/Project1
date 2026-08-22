@@ -6,8 +6,119 @@ var STATE = {
   page: 'beranda',
   mutasiTab: 'masuk',
   keuanganTab: 'pemasukan',
-  labaRange: 'hari'
+  labaRange: 'hari',
+  session: null
 };
+
+// ═══════════════════ AUTH: SPLASH, LOGIN, SIGNUP ═══════════════════
+var LS_KEY_USERS   = 'warungku_internal_users_v1';
+var LS_KEY_SESSION = 'warungku_internal_session_v1';
+
+function getUsers(){ try{ return JSON.parse(localStorage.getItem(LS_KEY_USERS)||'[]'); }catch(e){ return []; } }
+function saveUsers(u){ localStorage.setItem(LS_KEY_USERS, JSON.stringify(u)); }
+function getSession(){ try{ return JSON.parse(localStorage.getItem(LS_KEY_SESSION)||'null'); }catch(e){ return null; } }
+function saveSession(s){ localStorage.setItem(LS_KEY_SESSION, JSON.stringify(s)); }
+function clearSession(){ localStorage.removeItem(LS_KEY_SESSION); }
+function isLoggedIn(){ return !!getSession(); }
+
+function showAuthView(name){
+  ['splash','login','signup','success','app'].forEach(function(v){
+    var el = document.getElementById('view-'+v);
+    if(el) el.style.display = (v === name) ? 'flex' : 'none';
+  });
+  // Re-trigger animasi logo tiap kali splash/login/signup ditampilkan
+  if(name === 'splash' || name === 'login' || name === 'signup'){
+    var logo = document.querySelector('#view-'+name+' .auth-logo, #view-'+name+' .splash-logo');
+    if(logo){ logo.style.animation = 'none'; void logo.offsetWidth; logo.style.animation = ''; }
+  }
+}
+
+function doLogin(){
+  var username = (document.getElementById('login-username').value||'').trim();
+  var password = document.getElementById('login-password').value||'';
+  var errEl = document.getElementById('login-err');
+  errEl.style.display = 'none';
+
+  if(!username || !password){
+    errEl.textContent = '⚠️ Username dan password wajib diisi!';
+    errEl.style.display = 'block'; return;
+  }
+  var found = getUsers().find(function(u){ return u.username === username && u.password === password; });
+  if(!found){
+    errEl.textContent = '❌ Username atau password salah, atau akun belum terdaftar.';
+    errEl.style.display = 'block'; return;
+  }
+  saveSession({username: found.username, nama: found.nama, warung: found.warung});
+  document.getElementById('login-username').value = '';
+  document.getElementById('login-password').value = '';
+  showSuccessThenEnter('Login Berhasil!', 'Selamat bekerja, ' + (found.nama || found.username) + '!');
+}
+
+function doSignup(){
+  var nama     = (document.getElementById('signup-nama').value||'').trim();
+  var warung   = (document.getElementById('signup-warung').value||'').trim();
+  var username = (document.getElementById('signup-username').value||'').trim();
+  var password = document.getElementById('signup-password').value||'';
+  var konfirm  = document.getElementById('signup-konfirmasi').value||'';
+  var errEl    = document.getElementById('signup-err');
+  errEl.style.display = 'none';
+
+  if(!nama || !warung || !username || !password || !konfirm){
+    errEl.textContent = '⚠️ Semua kolom wajib diisi!';
+    errEl.style.display = 'block'; return;
+  }
+  if(/\s/.test(username)){
+    errEl.textContent = '⚠️ Username tidak boleh mengandung spasi.';
+    errEl.style.display = 'block'; return;
+  }
+  if(password.length < 6){
+    errEl.textContent = '⚠️ Password minimal 6 karakter.';
+    errEl.style.display = 'block'; return;
+  }
+  if(password !== konfirm){
+    errEl.textContent = '❌ Konfirmasi password tidak cocok!';
+    errEl.style.display = 'block'; return;
+  }
+  var users = getUsers();
+  if(users.find(function(u){ return u.username === username; })){
+    errEl.textContent = '❌ Username sudah dipakai, pilih username lain.';
+    errEl.style.display = 'block'; return;
+  }
+  var newUser = {username: username, password: password, nama: nama, warung: warung};
+  users.push(newUser);
+  saveUsers(users);
+  saveSession({username: newUser.username, nama: newUser.nama, warung: newUser.warung});
+  showSuccessThenEnter('Pendaftaran Sukses!', 'Warung "' + warung + '" siap dikelola.');
+}
+
+function showSuccessThenEnter(title, sub){
+  document.getElementById('success-title').textContent = title;
+  document.getElementById('success-sub').textContent = sub;
+  showAuthView('success');
+  setTimeout(enterApp, 1300);
+}
+
+function doLogout(){
+  if(!confirm('Keluar dari akun ini?')) return;
+  clearSession();
+  STATE.session = null;
+  closeSheet();
+  showAuthView('login');
+}
+
+function enterApp(){
+  STATE.session = getSession();
+  showAuthView('app');
+  goPage('beranda');
+}
+
+function getGreeting(){
+  var jam = new Date().getHours();
+  if(jam < 11) return 'Selamat Pagi';
+  if(jam < 15) return 'Selamat Siang';
+  if(jam < 18) return 'Selamat Sore';
+  return 'Selamat Malam';
+}
 
 var ICONS = {
   beranda: '<svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>',
@@ -18,7 +129,14 @@ var ICONS = {
 
 function appInit(){
   bindNav();
-  render();
+  showAuthView('splash');
+  setTimeout(function(){
+    if(isLoggedIn()){
+      enterApp();
+    } else {
+      showAuthView('login');
+    }
+  }, 1900);
 }
 
 function bindNav(){
@@ -41,8 +159,9 @@ function render(){
   var sub = document.getElementById('topbar-sub');
   closeSheet();
   if(STATE.page === 'beranda'){
-    title.textContent = 'WarungKu Internal';
-    sub.textContent = DB.fmtTgl(DB.todayISO());
+    var s = STATE.session || getSession();
+    title.textContent = getGreeting() + (s && s.nama ? ', ' + s.nama : '') + '!';
+    sub.textContent = DB.fmtTgl(DB.todayISO()) + (s && s.warung ? ' \u00b7 ' + s.warung : '');
     el.innerHTML = renderBeranda();
   } else if(STATE.page === 'bahan'){
     title.textContent = 'Bahan Baku';

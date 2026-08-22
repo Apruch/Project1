@@ -4,13 +4,70 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WarungKu Internal — Operasional Warung</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icons/launchericon-192x192.png">
 </head>
 <body>
-<div class="app">
+
+<!-- ═══════════ SPLASH SCREEN (animasi logo saat membuka apk) ═══════════ -->
+<div class="auth-screen splash-screen" id="view-splash">
+  <div class="splash-logo">Warung<em>Ku!</em></div>
+  <div class="splash-tagline">Asisten Operasional Warung Anda</div>
+  <div class="splash-dot-loader">
+    <div class="splash-dot"></div><div class="splash-dot"></div><div class="splash-dot"></div>
+  </div>
+</div>
+
+<!-- ═══════════ LOGIN ═══════════ -->
+<div class="auth-screen" id="view-login" style="display:none;">
+  <div class="auth-top">
+    <div class="auth-logo">Warung<em>Ku!</em></div>
+    <div class="auth-tagline">Asisten Operasional Warung Anda</div>
+  </div>
+  <div class="auth-card">
+    <div class="auth-card-title">Masuk</div>
+    <div class="auth-card-sub">Login untuk mengelola bahan baku, stok, dan keuangan warung.</div>
+    <div class="auth-err" id="login-err"></div>
+    <div class="field"><label>Username</label><input id="login-username" type="text" placeholder="Username akun kamu" onkeydown="if(event.key==='Enter') doLogin();"></div>
+    <div class="field"><label>Password</label><input id="login-password" type="password" placeholder="Password" onkeydown="if(event.key==='Enter') doLogin();"></div>
+    <button class="btn btn-primary" onclick="doLogin()">Login</button>
+    <div class="auth-switch">Belum punya akun? <span class="lnk" onclick="showAuthView('signup')">Daftar Sekarang</span></div>
+  </div>
+</div>
+
+<!-- ═══════════ SIGNUP ═══════════ -->
+<div class="auth-screen" id="view-signup" style="display:none;">
+  <div class="auth-top">
+    <div class="auth-logo">Warung<em>Ku!</em></div>
+    <div class="auth-tagline">Asisten Operasional Warung Anda</div>
+  </div>
+  <div class="auth-card">
+    <div class="auth-card-title">Daftar Akun</div>
+    <div class="auth-card-sub">Buat akun untuk warungmu. Data tersimpan aman di perangkat ini.</div>
+    <div class="auth-err" id="signup-err"></div>
+    <div class="field"><label>Nama Lengkap</label><input id="signup-nama" type="text" placeholder="Nama kamu"></div>
+    <div class="field"><label>Nama Warung</label><input id="signup-warung" type="text" placeholder="Contoh: Warung Suka Maju"></div>
+    <div class="field"><label>Username</label><input id="signup-username" type="text" placeholder="Username untuk login"></div>
+    <div class="field-row">
+      <div class="field"><label>Password</label><input id="signup-password" type="password" placeholder="Min. 6 karakter"></div>
+      <div class="field"><label>Konfirmasi</label><input id="signup-konfirmasi" type="password" placeholder="Ulangi password"></div>
+    </div>
+    <button class="btn btn-primary" onclick="doSignup()">Daftar</button>
+    <div class="auth-switch">Sudah punya akun? <span class="lnk" onclick="showAuthView('login')">Login</span></div>
+  </div>
+</div>
+
+<!-- ═══════════ SUKSES (transisi setelah login/daftar) ═══════════ -->
+<div class="auth-screen splash-screen" id="view-success" style="display:none;">
+  <div class="success-check">✓</div>
+  <div class="splash-logo" id="success-title" style="font-size:22px;">Berhasil!</div>
+  <div class="splash-tagline" id="success-sub">Mohon tunggu sebentar ya.</div>
+</div>
+
+<!-- ═══════════ APLIKASI UTAMA ═══════════ -->
+<div class="app" id="view-app" style="display:none;">
   <div class="topbar">
     <div class="topbar-row">
       <div>
@@ -63,8 +120,13 @@ if('serviceWorker' in navigator){
 }
 
 function openMenu(){
+  var s = getSession();
   var html = '<div class="sheet-title"><span>Menu</span><span class="sheet-close" onclick="closeSheet()">&times;</span></div>';
+  if(s){
+    html += '<div class="field-hint" style="margin-bottom:14px;">Masuk sebagai <b>'+esc(s.nama||s.username)+'</b> &middot; '+esc(s.warung||'-')+'</div>';
+  }
   html += '<button class="btn btn-outline" style="margin-bottom:10px;" onclick="eksporData()">⬇ Ekspor Data (Backup JSON)</button>';
+  html += '<button class="btn btn-outline" style="margin-bottom:10px;" onclick="doLogout()">Keluar Akun</button>';
   html += '<button class="btn btn-danger" onclick="resetData()">Reset Semua Data</button>';
   openSheet(html);
 }
