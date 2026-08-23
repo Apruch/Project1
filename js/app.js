@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════
-// app.js — UI & navigasi WarungKu Internal
+// app.js — UI & navigasi WarungKu Internal (terhubung ke MySQL via API PHP)
 // ═══════════════════════════════════════════════════════════════
 
 var STATE = {
@@ -11,11 +11,8 @@ var STATE = {
 };
 
 // ═══════════════════ AUTH: SPLASH, LOGIN, SIGNUP ═══════════════════
-var LS_KEY_USERS   = 'warungku_internal_users_v1';
 var LS_KEY_SESSION = 'warungku_internal_session_v1';
 
-function getUsers(){ try{ return JSON.parse(localStorage.getItem(LS_KEY_USERS)||'[]'); }catch(e){ return []; } }
-function saveUsers(u){ localStorage.setItem(LS_KEY_USERS, JSON.stringify(u)); }
 function getSession(){ try{ return JSON.parse(localStorage.getItem(LS_KEY_SESSION)||'null'); }catch(e){ return null; } }
 function saveSession(s){ localStorage.setItem(LS_KEY_SESSION, JSON.stringify(s)); }
 function clearSession(){ localStorage.removeItem(LS_KEY_SESSION); }
@@ -26,11 +23,6 @@ function showAuthView(name){
     var el = document.getElementById('view-'+v);
     if(el) el.style.display = (v === name) ? 'flex' : 'none';
   });
-  // Re-trigger animasi logo tiap kali splash/login/signup ditampilkan
-  if(name === 'splash' || name === 'login' || name === 'signup'){
-    var logo = document.querySelector('#view-'+name+' .logo-img');
-    if(logo){ logo.style.animation = 'none'; void logo.offsetWidth; logo.style.animation = ''; }
-  }
 }
 
 function doLogin(){
@@ -43,15 +35,18 @@ function doLogin(){
     errEl.textContent = '⚠️ Username dan password wajib diisi!';
     errEl.style.display = 'block'; return;
   }
-  var found = getUsers().find(function(u){ return u.username === username && u.password === password; });
-  if(!found){
-    errEl.textContent = '❌ Username atau password salah, atau akun belum terdaftar.';
-    errEl.style.display = 'block'; return;
-  }
-  saveSession({username: found.username, nama: found.nama, warung: found.warung});
-  document.getElementById('login-username').value = '';
-  document.getElementById('login-password').value = '';
-  showSuccessThenEnter('Login Berhasil!', 'Selamat bekerja, ' + (found.nama || found.username) + '!');
+
+  apiPost('auth.php?action=login', {username: username, password: password})
+    .then(function(res){
+      saveSession(res.user);
+      document.getElementById('login-username').value = '';
+      document.getElementById('login-password').value = '';
+      showSuccessThenEnter('Login Berhasil!', 'Selamat bekerja, ' + (res.user.nama || res.user.username) + '!');
+    })
+    .catch(function(err){
+      errEl.textContent = '❌ ' + err.message;
+      errEl.style.display = 'block';
+    });
 }
 
 function doSignup(){
@@ -79,23 +74,23 @@ function doSignup(){
     errEl.textContent = '❌ Konfirmasi password tidak cocok!';
     errEl.style.display = 'block'; return;
   }
-  var users = getUsers();
-  if(users.find(function(u){ return u.username === username; })){
-    errEl.textContent = '❌ Username sudah dipakai, pilih username lain.';
-    errEl.style.display = 'block'; return;
-  }
-  var newUser = {username: username, password: password, nama: nama, warung: warung};
-  users.push(newUser);
-  saveUsers(users);
-  saveSession({username: newUser.username, nama: newUser.nama, warung: newUser.warung});
-  showSuccessThenEnter('Pendaftaran Sukses!', 'Warung "' + warung + '" siap dikelola.');
+
+  apiPost('auth.php?action=signup', {nama: nama, warung: warung, username: username, password: password})
+    .then(function(res){
+      saveSession(res.user);
+      showSuccessThenEnter('Pendaftaran Sukses!', 'Warung "' + warung + '" siap dikelola.');
+    })
+    .catch(function(err){
+      errEl.textContent = '❌ ' + err.message;
+      errEl.style.display = 'block';
+    });
 }
 
 function showSuccessThenEnter(title, sub){
   document.getElementById('success-title').textContent = title;
   document.getElementById('success-sub').textContent = sub;
   showAuthView('success');
-  setTimeout(enterApp, 1300);
+  setTimeout(enterApp, 900);
 }
 
 function doLogout(){
@@ -109,7 +104,14 @@ function doLogout(){
 function enterApp(){
   STATE.session = getSession();
   showAuthView('app');
-  goPage('beranda');
+  toast('Menghubungkan ke database…');
+  DB.loadAll()
+    .then(function(){ goPage('beranda'); })
+    .catch(function(err){
+      document.getElementById('content').innerHTML =
+        '<div class="empty-state"><div class="em">🔌</div>' + esc(err.message) +
+        '<div style="margin-top:14px;"><button class="btn btn-outline btn-sm" onclick="enterApp()">Coba Lagi</button></div></div>';
+    });
 }
 
 function getGreeting(){
@@ -120,13 +122,6 @@ function getGreeting(){
   return 'Selamat Malam';
 }
 
-var ICONS = {
-  beranda: '<svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>',
-  bahan:   '<svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v3.01c0 .72.43 1.34 1 1.72V20c0 1.1 1.1 2 2 2h14c.9 0 2-.9 2-2V8.72c.57-.38 1-.99 1-1.72V4c0-1.1-.9-2-2-2zm-5 12H9v-2h6v2zm5-7H4V4h16v3z"/></svg>',
-  mutasi:  '<svg viewBox="0 0 24 24"><path d="M9 3L5 6.99h3V14h2V6.99h3L9 3zm7 14.01V10h-2v7.01h-3L15 21l4-3.99h-3z"/></svg>',
-  keuangan:'<svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>'
-};
-
 function appInit(){
   bindNav();
   showAuthView('splash');
@@ -136,7 +131,7 @@ function appInit(){
     } else {
       showAuthView('login');
     }
-  }, 1900);
+  }, 1200);
 }
 
 function bindNav(){
@@ -157,14 +152,15 @@ function render(){
   var el = document.getElementById('content');
   var title = document.getElementById('topbar-title');
   var sub = document.getElementById('topbar-sub');
-  closeSheet();
   var statsEl = document.getElementById('topbar-stats');
+  closeSheet();
+
   if(STATE.page === 'beranda'){
     var s = STATE.session || getSession();
     title.textContent = getGreeting() + (s && s.nama ? ', ' + s.nama : '') + '!';
     sub.textContent = DB.fmtTgl(DB.todayISO()) + (s && s.warung ? ' \u00b7 ' + s.warung : '');
-    statsEl.innerHTML = renderTopbarStats();
     el.innerHTML = renderBeranda();
+    renderTopbarStats().then(function(html){ statsEl.innerHTML = html; });
   } else if(STATE.page === 'bahan'){
     title.textContent = 'Bahan Baku';
     sub.textContent = 'Master data & indikator stok';
@@ -180,20 +176,24 @@ function render(){
     sub.textContent = 'Pemasukan, pengeluaran & laba rugi';
     statsEl.innerHTML = '';
     el.innerHTML = renderKeuangan();
+    if(STATE.keuanganTab === 'labarugi') refreshLabaRugi();
   }
 }
 
-// Statistik pemasukan/pengeluaran/laba-rugi digabung ke dalam satu shape biru (topbar)
+// Statistik pemasukan/pengeluaran/laba-rugi menyatu dalam shape header (Beranda)
 function renderTopbarStats(){
   var today = DB.todayISO();
-  var lr = DB.hitungLabaRugi(today, today);
-  var html = '<div class="tb-stat-grid">';
-  html += '<div class="tb-stat-card"><div class="tb-stat-label">Pemasukan Hari Ini</div><div class="tb-stat-val">'+DB.rp(lr.totalPemasukan)+'</div></div>';
-  html += '<div class="tb-stat-card"><div class="tb-stat-label">Pengeluaran Hari Ini</div><div class="tb-stat-val neg">'+DB.rp(lr.totalPengeluaran)+'</div></div>';
-  html += '</div>';
-  html += '<div class="tb-lr-row"><span class="tb-lr-label">LABA / RUGI HARI INI</span>';
-  html += '<span class="tb-lr-val'+(lr.labaRugi<0?' neg':'')+'">'+DB.rp(lr.labaRugi)+'</span></div>';
-  return html;
+  return DB.hitungLabaRugi(today, today).then(function(lr){
+    var html = '<div class="tb-stat-grid">';
+    html += '<div class="tb-stat-card"><div class="tb-stat-label">Pemasukan Hari Ini</div><div class="tb-stat-val">'+DB.rp(lr.totalPemasukan)+'</div></div>';
+    html += '<div class="tb-stat-card"><div class="tb-stat-label">Pengeluaran Hari Ini</div><div class="tb-stat-val neg">'+DB.rp(lr.totalPengeluaran)+'</div></div>';
+    html += '</div>';
+    html += '<div class="tb-lr-row"><span class="tb-lr-label">LABA / RUGI HARI INI</span>';
+    html += '<span class="tb-lr-val'+(lr.labaRugi<0?' neg':'')+'">'+DB.rp(lr.labaRugi)+'</span></div>';
+    return html;
+  }).catch(function(err){
+    return '<div class="field-hint" style="color:#fff;opacity:.8;margin-top:12px;">'+esc(err.message)+'</div>';
+  });
 }
 
 function toast(msg){
@@ -271,37 +271,39 @@ function openBahanForm(id){
   if(!b){
     html += '<div class="field"><label>Stok Awal</label><input id="f-stok" type="number" step="any" value="0"><div class="field-hint">Jumlah stok saat ini saat pertama kali dicatat.</div></div>';
   }
-  html += '<button class="btn btn-primary" onclick="simpanBahan('+(b?b.id:'null')+')">Simpan</button>';
+  html += '<button class="btn btn-primary" id="btn-simpan-bahan" onclick="simpanBahan('+(b?b.id:'null')+')">Simpan</button>';
   openSheet(html);
 }
 
 function simpanBahan(id){
-  try{
-    var obj = {
-      nama: document.getElementById('f-nama').value,
-      satuan: document.getElementById('f-satuan').value,
-      stokMin: document.getElementById('f-stokmin').value
-    };
-    if(id){
-      DB.updateBahan(id, obj);
-      toast('Bahan baku diperbarui');
-    } else {
-      obj.stok = document.getElementById('f-stok').value;
-      DB.tambahBahan(obj);
-      toast('Bahan baku ditambahkan');
-    }
+  var obj = {
+    nama: document.getElementById('f-nama').value,
+    satuan: document.getElementById('f-satuan').value,
+    stokMin: document.getElementById('f-stokmin').value
+  };
+  var btn = document.getElementById('btn-simpan-bahan');
+  btn.disabled = true; btn.textContent = 'Menyimpan…';
+
+  var task = id ? DB.updateBahan(id, obj) : (function(){ obj.stok = document.getElementById('f-stok').value; return DB.tambahBahan(obj); })();
+
+  task.then(function(){
+    toast(id ? 'Bahan baku diperbarui' : 'Bahan baku ditambahkan');
     closeSheet();
     render();
-  }catch(e){ toast(e.message); }
+  }).catch(function(err){
+    toast(err.message);
+    btn.disabled = false; btn.textContent = 'Simpan';
+  });
 }
 
 function konfirmasiHapusBahan(id){
   var b = DB.getBahan(id);
   if(!b) return;
-  if(confirm('Hapus "'+b.nama+'" dari master data? Riwayat mutasi terkait tidak akan terhapus.')){
-    DB.hapusBahan(id);
-    toast('Bahan baku dihapus');
-    render();
+  if(confirm('Hapus "'+b.nama+'" dari master data? Riwayat mutasi terkait ikut terhapus.')){
+    DB.hapusBahan(id).then(function(){
+      toast('Bahan baku dihapus');
+      render();
+    }).catch(function(err){ toast(err.message); });
   }
 }
 
@@ -350,7 +352,7 @@ function formMasuk(){
   html += '</div>';
   html += '<div class="field-hint" id="m-harga-satuan-hint" style="margin-bottom:10px;">Harga satuan akan dihitung otomatis.</div>';
   html += '<div class="field"><label>Catatan (opsional)</label><input id="m-catatan" type="text" placeholder="Contoh: Supplier / no. nota"></div>';
-  html += '<button class="btn btn-primary" onclick="simpanMasuk()">Simpan Barang Masuk</button>';
+  html += '<button class="btn btn-primary" id="btn-simpan-masuk" onclick="simpanMasuk()">Simpan Barang Masuk</button>';
   html += '</div>';
   return html;
 }
@@ -364,17 +366,21 @@ function updateHargaSatuanPreview(){
 }
 
 function simpanMasuk(){
-  try{
-    DB.tambahMutasiMasuk({
-      tgl: document.getElementById('m-tgl').value,
-      bahanId: document.getElementById('m-bahan').value,
-      jumlah: document.getElementById('m-jumlah').value,
-      totalHarga: document.getElementById('m-total').value,
-      catatan: document.getElementById('m-catatan').value
-    });
+  var btn = document.getElementById('btn-simpan-masuk');
+  btn.disabled = true; btn.textContent = 'Menyimpan…';
+  DB.tambahMutasiMasuk({
+    tgl: document.getElementById('m-tgl').value,
+    bahanId: document.getElementById('m-bahan').value,
+    jumlah: document.getElementById('m-jumlah').value,
+    totalHarga: document.getElementById('m-total').value,
+    catatan: document.getElementById('m-catatan').value
+  }).then(function(){
     toast('Barang masuk dicatat & stok diperbarui');
     render();
-  }catch(e){ toast(e.message); }
+  }).catch(function(err){
+    toast(err.message);
+    btn.disabled = false; btn.textContent = 'Simpan Barang Masuk';
+  });
 }
 
 function formKeluar(){
@@ -386,23 +392,27 @@ function formKeluar(){
   ['Operasional','Rusak','Basi','Lainnya'].forEach(function(k){ html += '<option value="'+k+'">'+k+'</option>'; });
   html += '</select></div>';
   html += '<div class="field"><label>Catatan (opsional)</label><input id="k-catatan" type="text" placeholder="Keterangan tambahan"></div>';
-  html += '<button class="btn btn-danger" onclick="simpanKeluar()">Simpan Barang Keluar</button>';
+  html += '<button class="btn btn-danger" id="btn-simpan-keluar" onclick="simpanKeluar()">Simpan Barang Keluar</button>';
   html += '</div>';
   return html;
 }
 
 function simpanKeluar(){
-  try{
-    DB.tambahMutasiKeluar({
-      tgl: document.getElementById('k-tgl').value,
-      bahanId: document.getElementById('k-bahan').value,
-      jumlah: document.getElementById('k-jumlah').value,
-      keterangan: document.getElementById('k-keterangan').value,
-      catatan: document.getElementById('k-catatan').value
-    });
+  var btn = document.getElementById('btn-simpan-keluar');
+  btn.disabled = true; btn.textContent = 'Menyimpan…';
+  DB.tambahMutasiKeluar({
+    tgl: document.getElementById('k-tgl').value,
+    bahanId: document.getElementById('k-bahan').value,
+    jumlah: document.getElementById('k-jumlah').value,
+    keterangan: document.getElementById('k-keterangan').value,
+    catatan: document.getElementById('k-catatan').value
+  }).then(function(){
     toast('Barang keluar dicatat & stok diperbarui');
     render();
-  }catch(e){ toast(e.message); }
+  }).catch(function(err){
+    toast(err.message);
+    btn.disabled = false; btn.textContent = 'Simpan Barang Keluar';
+  });
 }
 
 function renderRiwayatMutasi(){
@@ -430,9 +440,10 @@ function renderRiwayatMutasi(){
 
 function konfirmasiHapusMutasi(id){
   if(confirm('Hapus catatan mutasi ini? Stok akan disesuaikan kembali.')){
-    DB.hapusMutasi(id);
-    toast('Mutasi dihapus, stok disesuaikan');
-    render();
+    DB.hapusMutasi(id).then(function(){
+      toast('Mutasi dihapus, stok disesuaikan');
+      render();
+    }).catch(function(err){ toast(err.message); });
   }
 }
 
@@ -447,7 +458,7 @@ function renderKeuangan(){
 
   if(STATE.keuanganTab === 'pemasukan') html += renderPemasukan();
   else if(STATE.keuanganTab === 'pengeluaran') html += renderPengeluaran();
-  else html += renderLabaRugi();
+  else html += '<div id="labarugi-body">' + labaRugiSkeleton() + '</div>';
 
   return html;
 }
@@ -462,7 +473,7 @@ function renderPemasukan(){
   html += '</select></div>';
   html += '<div class="field"><label>Total Penjualan Kotor</label><input id="p-jumlah" type="number" step="any" placeholder="0"></div>';
   html += '<div class="field"><label>Catatan (opsional)</label><input id="p-catatan" type="text" placeholder="Contoh: termasuk pesanan online"></div>';
-  html += '<button class="btn btn-primary" onclick="simpanPemasukan()">Simpan Pemasukan</button>';
+  html += '<button class="btn btn-primary" id="btn-simpan-pemasukan" onclick="simpanPemasukan()">Simpan Pemasukan</button>';
   html += '</div>';
 
   html += '<div class="sec-title">Riwayat Pemasukan</div>';
@@ -483,20 +494,27 @@ function renderPemasukan(){
 }
 
 function simpanPemasukan(){
-  try{
-    DB.tambahPemasukan({
-      tgl: document.getElementById('p-tgl').value,
-      shift: document.getElementById('p-shift').value,
-      jumlah: document.getElementById('p-jumlah').value,
-      catatan: document.getElementById('p-catatan').value
-    });
+  var btn = document.getElementById('btn-simpan-pemasukan');
+  btn.disabled = true; btn.textContent = 'Menyimpan…';
+  DB.tambahPemasukan({
+    tgl: document.getElementById('p-tgl').value,
+    shift: document.getElementById('p-shift').value,
+    jumlah: document.getElementById('p-jumlah').value,
+    catatan: document.getElementById('p-catatan').value
+  }).then(function(){
     toast('Pemasukan dicatat');
     render();
-  }catch(e){ toast(e.message); }
+  }).catch(function(err){
+    toast(err.message);
+    btn.disabled = false; btn.textContent = 'Simpan Pemasukan';
+  });
 }
 
 function konfirmasiHapusPemasukan(id){
-  if(confirm('Hapus catatan pemasukan ini?')){ DB.hapusPemasukan(id); toast('Pemasukan dihapus'); render(); }
+  if(confirm('Hapus catatan pemasukan ini?')){
+    DB.hapusPemasukan(id).then(function(){ toast('Pemasukan dihapus'); render(); })
+      .catch(function(err){ toast(err.message); });
+  }
 }
 
 function renderPengeluaran(){
@@ -507,7 +525,7 @@ function renderPengeluaran(){
   html += '</select></div>';
   html += '<div class="field"><label>Jumlah</label><input id="e-jumlah" type="number" step="any" placeholder="0"></div>';
   html += '<div class="field"><label>Catatan (opsional)</label><input id="e-catatan" type="text" placeholder="Keterangan tambahan"></div>';
-  html += '<button class="btn btn-primary" onclick="simpanPengeluaran()">Simpan Pengeluaran</button>';
+  html += '<button class="btn btn-primary" id="btn-simpan-pengeluaran" onclick="simpanPengeluaran()">Simpan Pengeluaran</button>';
   html += '</div>';
 
   html += '<div class="sec-title">Belanja Bahan (Otomatis dari Barang Masuk)</div>';
@@ -544,41 +562,60 @@ function renderPengeluaran(){
 }
 
 function simpanPengeluaran(){
-  try{
-    DB.tambahPengeluaranManual({
-      tgl: document.getElementById('e-tgl').value,
-      kategori: document.getElementById('e-kategori').value,
-      jumlah: document.getElementById('e-jumlah').value,
-      catatan: document.getElementById('e-catatan').value
-    });
+  var btn = document.getElementById('btn-simpan-pengeluaran');
+  btn.disabled = true; btn.textContent = 'Menyimpan…';
+  DB.tambahPengeluaranManual({
+    tgl: document.getElementById('e-tgl').value,
+    kategori: document.getElementById('e-kategori').value,
+    jumlah: document.getElementById('e-jumlah').value,
+    catatan: document.getElementById('e-catatan').value
+  }).then(function(){
     toast('Pengeluaran dicatat');
     render();
-  }catch(e){ toast(e.message); }
+  }).catch(function(err){
+    toast(err.message);
+    btn.disabled = false; btn.textContent = 'Simpan Pengeluaran';
+  });
 }
 
 function konfirmasiHapusPengeluaran(id){
-  if(confirm('Hapus catatan pengeluaran ini?')){ DB.hapusPengeluaranManual(id); toast('Pengeluaran dihapus'); render(); }
+  if(confirm('Hapus catatan pengeluaran ini?')){
+    DB.hapusPengeluaranManual(id).then(function(){ toast('Pengeluaran dihapus'); render(); })
+      .catch(function(err){ toast(err.message); });
+  }
 }
 
-function renderLabaRugi(){
-  var range = getRange(STATE.labaRange);
-  var lr = DB.hitungLabaRugi(range.start, range.end);
-
+function labaRugiSkeleton(){
   var html = '<div class="chip-row">';
   [['hari','Hari Ini'],['minggu','Minggu Ini'],['bulan','Bulan Ini']].forEach(function(r){
     html += '<div class="chip '+(STATE.labaRange===r[0]?'active':'')+'" onclick="setLabaRange(\''+r[0]+'\')">'+r[1]+'</div>';
   });
-  html += '</div>';
-
-  html += '<div class="card">';
-  html += '<div class="lr-row"><span>Total Pemasukan</span><b style="color:var(--green-dark);">'+DB.rp(lr.totalPemasukan)+'</b></div>';
-  html += '<div class="lr-row"><span>Belanja Bahan Baku</span><b style="color:var(--red);">- '+DB.rp(lr.totalBelanjaBahan)+'</b></div>';
-  html += '<div class="lr-row"><span>Pengeluaran Operasional Lain</span><b style="color:var(--red);">- '+DB.rp(lr.totalPengeluaranManual)+'</b></div>';
-  html += '<div class="lr-row total"><span>Laba / Rugi Bersih</span><b class="'+(lr.labaRugi>=0?'stat-val pos':'stat-val neg')+'" style="font-size:16px;">'+DB.rp(lr.labaRugi)+'</b></div>';
-  html += '</div>';
-
-  html += '<div class="field-hint" style="margin:4px 2px 0;">Periode: '+DB.fmtTgl(range.start)+' &ndash; '+DB.fmtTgl(range.end)+'</div>';
+  html += '</div><div class="card"><div class="empty-state" style="padding:14px;">Memuat data…</div></div>';
   return html;
+}
+
+function refreshLabaRugi(){
+  var range = getRange(STATE.labaRange);
+  DB.hitungLabaRugi(range.start, range.end).then(function(lr){
+    var el = document.getElementById('labarugi-body');
+    if(!el) return; // pindah tab sebelum data selesai dimuat
+    var html = '<div class="chip-row">';
+    [['hari','Hari Ini'],['minggu','Minggu Ini'],['bulan','Bulan Ini']].forEach(function(r){
+      html += '<div class="chip '+(STATE.labaRange===r[0]?'active':'')+'" onclick="setLabaRange(\''+r[0]+'\')">'+r[1]+'</div>';
+    });
+    html += '</div>';
+    html += '<div class="card">';
+    html += '<div class="lr-row"><span>Total Pemasukan</span><b style="color:var(--green-dark);">'+DB.rp(lr.totalPemasukan)+'</b></div>';
+    html += '<div class="lr-row"><span>Belanja Bahan Baku</span><b style="color:var(--red);">- '+DB.rp(lr.totalBelanjaBahan)+'</b></div>';
+    html += '<div class="lr-row"><span>Pengeluaran Operasional Lain</span><b style="color:var(--red);">- '+DB.rp(lr.totalPengeluaranManual)+'</b></div>';
+    html += '<div class="lr-row total"><span>Laba / Rugi Bersih</span><b class="'+(lr.labaRugi>=0?'stat-val pos':'stat-val neg')+'" style="font-size:16px;">'+DB.rp(lr.labaRugi)+'</b></div>';
+    html += '</div>';
+    html += '<div class="field-hint" style="margin:4px 2px 0;">Periode: '+DB.fmtTgl(range.start)+' &ndash; '+DB.fmtTgl(range.end)+'</div>';
+    el.innerHTML = html;
+  }).catch(function(err){
+    var el = document.getElementById('labarugi-body');
+    if(el) el.innerHTML = '<div class="empty-state">'+esc(err.message)+'</div>';
+  });
 }
 
 function setLabaRange(r){ STATE.labaRange = r; render(); }

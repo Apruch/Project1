@@ -45,7 +45,7 @@
   </div>
   <div class="auth-card">
     <div class="auth-card-title">Daftar Akun</div>
-    <div class="auth-card-sub">Buat akun untuk warungmu. Data tersimpan aman di perangkat ini.</div>
+    <div class="auth-card-sub">Buat akun untuk warungmu. Data tersimpan di database warung kamu.</div>
     <div class="auth-err" id="signup-err"></div>
     <div class="field"><label>Nama Lengkap</label><input id="signup-nama" type="text" placeholder="Nama kamu"></div>
     <div class="field"><label>Nama Warung</label><input id="signup-warung" type="text" placeholder="Contoh: Warung Suka Maju"></div>
@@ -126,10 +126,19 @@ function openMenu(){
   if(s){
     html += '<div class="field-hint" style="margin-bottom:14px;">Masuk sebagai <b>'+esc(s.nama||s.username)+'</b> &middot; '+esc(s.warung||'-')+'</div>';
   }
-  html += '<button class="btn btn-outline" style="margin-bottom:10px;" onclick="eksporData()">⬇ Ekspor Data (Backup JSON)</button>';
-  html += '<button class="btn btn-outline" style="margin-bottom:10px;" onclick="doLogout()">Keluar Akun</button>';
-  html += '<button class="btn btn-danger" onclick="resetData()">Reset Semua Data</button>';
+  html += '<div class="field-hint" style="margin-bottom:14px;">Data tersimpan di database MySQL (XAMPP), bukan di perangkat ini.</div>';
+  html += '<button class="btn btn-outline" style="margin-bottom:10px;" onclick="muatUlangData()">⟳ Muat Ulang Data</button>';
+  html += '<button class="btn btn-danger" onclick="doLogout()">Keluar Akun</button>';
   openSheet(html);
+}
+
+function muatUlangData(){
+  closeSheet();
+  toast('Memuat ulang data…');
+  DB.loadAll().then(function(){
+    toast('Data terbaru dimuat');
+    render();
+  }).catch(function(err){ toast(err.message); });
 }
 </script>
 </body>
