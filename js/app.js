@@ -28,7 +28,7 @@ function showAuthView(name){
   });
   // Re-trigger animasi logo tiap kali splash/login/signup ditampilkan
   if(name === 'splash' || name === 'login' || name === 'signup'){
-    var logo = document.querySelector('#view-'+name+' .auth-logo, #view-'+name+' .splash-logo');
+    var logo = document.querySelector('#view-'+name+' .logo-img');
     if(logo){ logo.style.animation = 'none'; void logo.offsetWidth; logo.style.animation = ''; }
   }
 }
