@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════
-// db.js — Data layer, terhubung ke backend PHP + MySQL (XAMPP)
+// db.js — Data layer, terhubung ke backend PHP + SQLite (tersimpan di perangkat)
 // Modul: Bahan Baku, Mutasi Stok, Manajemen Keuangan
 // ═══════════════════════════════════════════════════════════════
 
@@ -181,7 +181,7 @@ function handleApiResponse(resp){
 }
 function handleApiNetworkError(err){
   if(err instanceof TypeError){
-    throw new Error('Tidak dapat terhubung ke server. Pastikan XAMPP (Apache & MySQL) sudah dijalankan.');
+    throw new Error('Tidak dapat terhubung ke server. Pastikan server PHP-nya sedang berjalan.');
   }
   throw err;
 }

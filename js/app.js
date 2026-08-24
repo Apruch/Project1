@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════
-// app.js — UI & navigasi WarungKu Internal (terhubung ke MySQL via API PHP)
+// app.js — UI & navigasi WarungKu Internal (terhubung ke SQLite via API PHP)
 // ═══════════════════════════════════════════════════════════════
 
 var STATE = {
@@ -265,7 +265,7 @@ function openBahanForm(id){
   var html = '<div class="sheet-title"><span>'+(b?'Edit Bahan Baku':'Tambah Bahan Baku')+'</span><span class="sheet-close" onclick="closeSheet()">&times;</span></div>';
   html += '<div class="field"><label>Nama Bahan</label><input id="f-nama" type="text" value="'+(b?esc(b.nama):'')+'" placeholder="Contoh: Beras Premium"></div>';
   html += '<div class="field-row">';
-  html += '<div class="field"><label>Satuan</label><select id="f-satuan">'+satuanOptions(b?b.satuan:'kg')+'</select></div>';
+  html += '<div class="field"><label>Satuan</label>'+customSelectHTML('f-satuan', satuanList(), b?b.satuan:'kg')+'</div>';
   html += '<div class="field"><label>Stok Minimum</label><input id="f-stokmin" type="number" step="any" value="'+(b?b.stokMin:'')+'" placeholder="0"></div>';
   html += '</div>';
   if(!b){
@@ -307,11 +307,9 @@ function konfirmasiHapusBahan(id){
   }
 }
 
-function satuanOptions(selected){
+function satuanList(){
   var list = ['kg','gram','liter','ml','pcs','pack','dus','karung','tabung','ikat','lainnya'];
-  return list.map(function(u){
-    return '<option value="'+u+'"'+(u===selected?' selected':'')+'>'+u+'</option>';
-  }).join('');
+  return list.map(function(u){ return {value:u, label:u}; });
 }
 
 // ═══════════════════ MODUL 2: MUTASI STOK ═══════════════════
@@ -336,16 +334,16 @@ function renderMutasi(){
 
 function setMutasiTab(t){ STATE.mutasiTab = t; render(); }
 
-function bahanOptions(){
+function bahanList(){
   return DB.bahan.slice().sort(function(a,b){return a.nama.localeCompare(b.nama);}).map(function(b){
-    return '<option value="'+b.id+'">'+esc(b.nama)+' (stok: '+fmtNum(b.stok)+' '+esc(b.satuan)+')</option>';
-  }).join('');
+    return {value:b.id, label: b.nama+' (stok: '+fmtNum(b.stok)+' '+b.satuan+')'};
+  });
 }
 
 function formMasuk(){
   var html = '<div class="card">';
   html += '<div class="field"><label>Tanggal</label><input id="m-tgl" type="date" value="'+DB.todayISO()+'"></div>';
-  html += '<div class="field"><label>Nama Bahan</label><select id="m-bahan">'+bahanOptions()+'</select></div>';
+  html += '<div class="field"><label>Nama Bahan</label>'+customSelectHTML('m-bahan', bahanList())+'</div>';
   html += '<div class="field-row">';
   html += '<div class="field"><label>Jumlah</label><input id="m-jumlah" type="number" step="any" placeholder="0" oninput="updateHargaSatuanPreview()"></div>';
   html += '<div class="field"><label>Total Harga Beli</label><input id="m-total" type="number" step="any" placeholder="0" oninput="updateHargaSatuanPreview()"></div>';
@@ -386,11 +384,9 @@ function simpanMasuk(){
 function formKeluar(){
   var html = '<div class="card">';
   html += '<div class="field"><label>Tanggal</label><input id="k-tgl" type="date" value="'+DB.todayISO()+'"></div>';
-  html += '<div class="field"><label>Nama Bahan</label><select id="k-bahan">'+bahanOptions()+'</select></div>';
+  html += '<div class="field"><label>Nama Bahan</label>'+customSelectHTML('k-bahan', bahanList())+'</div>';
   html += '<div class="field"><label>Jumlah</label><input id="k-jumlah" type="number" step="any" placeholder="0"></div>';
-  html += '<div class="field"><label>Alasan</label><select id="k-keterangan">';
-  ['Operasional','Rusak','Basi','Lainnya'].forEach(function(k){ html += '<option value="'+k+'">'+k+'</option>'; });
-  html += '</select></div>';
+  html += '<div class="field"><label>Alasan</label>'+customSelectHTML('k-keterangan', ['Operasional','Rusak','Basi','Lainnya'].map(function(k){return {value:k,label:k};}))+'</div>';
   html += '<div class="field"><label>Catatan (opsional)</label><input id="k-catatan" type="text" placeholder="Keterangan tambahan"></div>';
   html += '<button class="btn btn-danger" id="btn-simpan-keluar" onclick="simpanKeluar()">Simpan Barang Keluar</button>';
   html += '</div>';
@@ -416,7 +412,7 @@ function simpanKeluar(){
 }
 
 function renderRiwayatMutasi(){
-  if(!DB.mutasi.length) return '<div class="empty-state"><div class="em">🗒️</div>Belum ada riwayat mutasi.</div>';
+  if(!DB.mutasi.length) return '<div class="empty-state"><div class="em"></div>Belum ada riwayat mutasi.</div>';
   var html = '';
   DB.mutasi.forEach(function(m){
     html += '<div class="mutasi-item">';
@@ -468,9 +464,7 @@ function setKeuanganTab(t){ STATE.keuanganTab = t; render(); }
 function renderPemasukan(){
   var html = '<div class="card">';
   html += '<div class="field"><label>Tanggal</label><input id="p-tgl" type="date" value="'+DB.todayISO()+'"></div>';
-  html += '<div class="field"><label>Shift / Periode</label><select id="p-shift">';
-  ['Harian','Pagi','Siang','Malam'].forEach(function(s){ html += '<option value="'+s+'">'+s+'</option>'; });
-  html += '</select></div>';
+  html += '<div class="field"><label>Shift / Periode</label>'+customSelectHTML('p-shift', ['Harian','Pagi','Siang','Malam'].map(function(s){return {value:s,label:s};}))+'</div>';
   html += '<div class="field"><label>Total Penjualan Kotor</label><input id="p-jumlah" type="number" step="any" placeholder="0"></div>';
   html += '<div class="field"><label>Catatan (opsional)</label><input id="p-catatan" type="text" placeholder="Contoh: termasuk pesanan online"></div>';
   html += '<button class="btn btn-primary" id="btn-simpan-pemasukan" onclick="simpanPemasukan()">Simpan Pemasukan</button>';
@@ -478,11 +472,11 @@ function renderPemasukan(){
 
   html += '<div class="sec-title">Riwayat Pemasukan</div>';
   if(!DB.pemasukan.length){
-    html += '<div class="empty-state"><div class="em">💰</div>Belum ada data pemasukan.</div>';
+    html += '<div class="empty-state"><div class="em"></div>Belum ada data pemasukan.</div>';
   } else {
     DB.pemasukan.forEach(function(p){
       html += '<div class="mutasi-item">';
-      html += '<div class="mutasi-dot masuk">💵</div>';
+      html += '<div class="mutasi-dot masuk"></div>';
       html += '<div class="mutasi-mid"><div class="mutasi-nama">'+esc(p.shift)+'</div>';
       html += '<div class="mutasi-sub">'+DB.fmtTgl(p.tgl)+(p.catatan?' &middot; '+esc(p.catatan):'')+'</div></div>';
       html += '<div class="mutasi-val masuk">'+DB.rp(p.jumlah)+'</div>';
@@ -520,9 +514,7 @@ function konfirmasiHapusPemasukan(id){
 function renderPengeluaran(){
   var html = '<div class="card">';
   html += '<div class="field"><label>Tanggal</label><input id="e-tgl" type="date" value="'+DB.todayISO()+'"></div>';
-  html += '<div class="field"><label>Kategori</label><select id="e-kategori">';
-  ['Listrik','Air','Gaji Karyawan','Sewa Tempat','Transportasi','Lainnya'].forEach(function(k){ html += '<option value="'+k+'">'+k+'</option>'; });
-  html += '</select></div>';
+  html += '<div class="field"><label>Kategori</label>'+customSelectHTML('e-kategori', ['Listrik','Air','Gaji Karyawan','Sewa Tempat','Transportasi','Lainnya'].map(function(k){return {value:k,label:k};}))+'</div>';
   html += '<div class="field"><label>Jumlah</label><input id="e-jumlah" type="number" step="any" placeholder="0"></div>';
   html += '<div class="field"><label>Catatan (opsional)</label><input id="e-catatan" type="text" placeholder="Keterangan tambahan"></div>';
   html += '<button class="btn btn-primary" id="btn-simpan-pengeluaran" onclick="simpanPengeluaran()">Simpan Pengeluaran</button>';
@@ -531,11 +523,11 @@ function renderPengeluaran(){
   html += '<div class="sec-title">Belanja Bahan (Otomatis dari Barang Masuk)</div>';
   var belanja = DB.mutasi.filter(function(m){ return m.tipe==='masuk'; });
   if(!belanja.length){
-    html += '<div class="empty-state"><div class="em">🧾</div>Belum ada belanja bahan tercatat.</div>';
+    html += '<div class="empty-state"><div class="em"></div>Belum ada belanja bahan tercatat.</div>';
   } else {
     belanja.slice(0,10).forEach(function(m){
       html += '<div class="mutasi-item">';
-      html += '<div class="mutasi-dot keluar">🧾</div>';
+      html += '<div class="mutasi-dot keluar"></div>';
       html += '<div class="mutasi-mid"><div class="mutasi-nama">'+esc(m.bahanNama)+'</div>';
       html += '<div class="mutasi-sub">'+DB.fmtTgl(m.tgl)+' &middot; Otomatis dari Barang Masuk</div></div>';
       html += '<div class="mutasi-val keluar">'+DB.rp(m.totalHarga)+'</div>';
@@ -546,11 +538,11 @@ function renderPengeluaran(){
 
   html += '<div class="sec-title">Pengeluaran Operasional Lain</div>';
   if(!DB.pengeluaranManual.length){
-    html += '<div class="empty-state"><div class="em">📋</div>Belum ada pengeluaran operasional lain.</div>';
+    html += '<div class="empty-state"><div class="em"></div>Belum ada pengeluaran operasional lain.</div>';
   } else {
     DB.pengeluaranManual.forEach(function(p){
       html += '<div class="mutasi-item">';
-      html += '<div class="mutasi-dot keluar">💸</div>';
+      html += '<div class="mutasi-dot keluar"></div>';
       html += '<div class="mutasi-mid"><div class="mutasi-nama">'+esc(p.kategori)+'</div>';
       html += '<div class="mutasi-sub">'+DB.fmtTgl(p.tgl)+(p.catatan?' &middot; '+esc(p.catatan):'')+'</div></div>';
       html += '<div class="mutasi-val keluar">'+DB.rp(p.jumlah)+'</div>';
@@ -656,3 +648,56 @@ function fmtNum(n){
   n = Number(n)||0;
   return (n % 1 === 0) ? n.toLocaleString('id-ID') : n.toLocaleString('id-ID', {maximumFractionDigits:2});
 }
+
+// ═══════════════════ DROPDOWN KUSTOM (bukan <select> bawaan) ═══════════════════
+// options: [{value, label}]  |  selected: value awal
+function customSelectHTML(id, options, selected){
+  if(selected === undefined || selected === null || selected === ''){
+    selected = options.length ? options[0].value : '';
+  }
+  var selectedOpt = options.filter(function(o){ return String(o.value) === String(selected); })[0] || options[0] || {value:'', label:''};
+  var html = '<div class="csel" id="csel-'+id+'">';
+  html += '<input type="hidden" id="'+id+'" value="'+esc(selectedOpt.value)+'">';
+  html += '<div class="csel-trigger" id="csel-trigger-'+id+'" onclick="toggleSelect(\''+id+'\')">';
+  html += '<span class="csel-label" id="csel-label-'+id+'">'+esc(selectedOpt.label)+'</span>';
+  html += '<svg class="csel-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 8 10 13 15 8"/></svg>';
+  html += '</div>';
+  html += '<div class="csel-list" id="csel-list-'+id+'">';
+  options.forEach(function(o){
+    var isSel = String(o.value) === String(selectedOpt.value);
+    html += '<div class="csel-opt'+(isSel?' sel':'')+'" onclick="pickSelect(\''+id+'\',\''+String(o.value).replace(/'/g,"\\'")+'\',this)">'+esc(o.label)+'</div>';
+  });
+  html += '</div></div>';
+  return html;
+}
+
+function toggleSelect(id){
+  var list = document.getElementById('csel-list-'+id);
+  var trigger = document.getElementById('csel-trigger-'+id);
+  var wasOpen = list.classList.contains('open');
+  closeAllSelects();
+  if(!wasOpen){
+    list.classList.add('open');
+    trigger.classList.add('open');
+  }
+}
+
+function pickSelect(id, value, node){
+  document.getElementById(id).value = value;
+  document.getElementById('csel-label-'+id).textContent = node.textContent;
+  var list = document.getElementById('csel-list-'+id);
+  Array.prototype.forEach.call(list.querySelectorAll('.csel-opt'), function(o){ o.classList.remove('sel'); });
+  node.classList.add('sel');
+  closeAllSelects();
+}
+
+function closeAllSelects(){
+  document.querySelectorAll('.csel-list.open').forEach(function(l){ l.classList.remove('open'); });
+  document.querySelectorAll('.csel-trigger.open').forEach(function(t){ t.classList.remove('open'); });
+}
+
+document.addEventListener('click', function(e){
+  if(!e.target.closest || !e.target.closest('.csel')){
+    closeAllSelects();
+  }
+});

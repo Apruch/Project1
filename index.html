@@ -126,7 +126,7 @@ function openMenu(){
   if(s){
     html += '<div class="field-hint" style="margin-bottom:14px;">Masuk sebagai <b>'+esc(s.nama||s.username)+'</b> &middot; '+esc(s.warung||'-')+'</div>';
   }
-  html += '<div class="field-hint" style="margin-bottom:14px;">Data tersimpan di database MySQL (XAMPP), bukan di perangkat ini.</div>';
+  html += '<div class="field-hint" style="margin-bottom:14px;">Data tersimpan di database SQLite langsung di perangkat/server ini.</div>';
   html += '<button class="btn btn-outline" style="margin-bottom:10px;" onclick="muatUlangData()">⟳ Muat Ulang Data</button>';
   html += '<button class="btn btn-danger" onclick="doLogout()">Keluar Akun</button>';
   openSheet(html);

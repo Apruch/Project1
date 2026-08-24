@@ -1,33 +1,47 @@
 <?php
 /**
- * config/db.php — Koneksi database untuk XAMPP / phpMyAdmin
+ * config/db.php — Koneksi database SQLite
  *
- * Default XAMPP: host=localhost, user=root, password kosong.
- * Kalau MySQL kamu pakai password, isi di DB_PASS di bawah.
+ * Database tersimpan sebagai SATU FILE di dalam folder database/,
+ * langsung di perangkat/server tempat aplikasi ini berjalan.
+ * Tidak perlu MySQL, tidak perlu XAMPP MySQL/phpMyAdmin, tidak
+ * perlu proses import manual — file database & tabelnya otomatis
+ * dibuat sendiri dari database/warungku.sql saat pertama kali diakses.
  */
 
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'warungku_internal');
-define('DB_USER', 'root');
-define('DB_PASS', '');       // isi password MySQL kamu kalau ada
-define('DB_CHARSET', 'utf8mb4');
+define('DB_DIR', __DIR__ . '/../database');
+define('DB_FILE', DB_DIR . '/warungku.sqlite');
+define('DB_SCHEMA', DB_DIR . '/warungku.sql');
 
 function getDB() {
     static $pdo = null;
     if ($pdo === null) {
         try {
-            $dsn = 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=' . DB_CHARSET;
-            $pdo = new PDO($dsn, DB_USER, DB_PASS, [
+            $isNew = !file_exists(DB_FILE);
+
+            if (!is_dir(DB_DIR)) {
+                mkdir(DB_DIR, 0775, true);
+            }
+
+            $pdo = new PDO('sqlite:' . DB_FILE, null, null, [
                 PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                PDO::ATTR_EMULATE_PREPARES   => false,
             ]);
+            $pdo->exec('PRAGMA foreign_keys = ON');
+
+            // Kalau file database belum ada (pertama kali dijalankan),
+            // buat otomatis dari skema + data awal.
+            if ($isNew && file_exists(DB_SCHEMA)) {
+                $sql = file_get_contents(DB_SCHEMA);
+                $pdo->exec($sql);
+            }
+
         } catch (PDOException $e) {
             http_response_code(500);
             header('Content-Type: application/json');
             echo json_encode([
                 'success' => false,
-                'error'   => 'Koneksi database gagal. Pastikan XAMPP (Apache & MySQL) sudah dijalankan dan database "warungku_internal" sudah di-import lewat phpMyAdmin.',
+                'error'   => 'Koneksi database gagal. Pastikan ekstensi PHP "pdo_sqlite" aktif dan folder "database/" bisa ditulis (writable) oleh server.',
                 'detail'  => $e->getMessage()
             ]);
             exit;

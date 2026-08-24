@@ -91,7 +91,7 @@ if ($method === 'GET') {
     try {
         // Kembalikan stok seperti sebelum mutasi ini tercatat
         if ($m['tipe'] === 'masuk') {
-            $pdo->prepare('UPDATE bahan_baku SET stok = GREATEST(0, stok - ?) WHERE id = ?')
+            $pdo->prepare('UPDATE bahan_baku SET stok = MAX(0, stok - ?) WHERE id = ?')
                 ->execute([$m['jumlah'], $m['bahan_id']]);
         } else {
             $pdo->prepare('UPDATE bahan_baku SET stok = stok + ? WHERE id = ?')

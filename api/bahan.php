@@ -50,7 +50,7 @@ if ($method === 'GET') {
     $stokMin = isset($in['stokMin']) ? (float)$in['stokMin'] : $existing['stok_min'];
     $stok    = isset($in['stok']) ? (float)$in['stok'] : $existing['stok'];
 
-    $stmt = $pdo->prepare('UPDATE bahan_baku SET nama=?, satuan=?, stok=?, stok_min=? WHERE id=?');
+    $stmt = $pdo->prepare("UPDATE bahan_baku SET nama=?, satuan=?, stok=?, stok_min=?, updated_at=CURRENT_TIMESTAMP WHERE id=?");
     $stmt->execute([$nama, $satuan, $stok, $stokMin, $id]);
 
     // Sinkronkan nama & satuan pada riwayat mutasi yang sudah ada
