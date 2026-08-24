@@ -52,9 +52,10 @@ button,input,select,textarea{font-family:inherit;}
   max-width:480px;margin:0 auto;width:100%;z-index:50;}
 .ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10.5px;
   color:var(--text-light);cursor:pointer;font-weight:600;padding:4px 0;}
-.ni svg{width:21px;height:21px;fill:var(--text-light);}
+.ni svg{width:21px;height:21px;fill:none;stroke:var(--text-light);}
+.icon-svg{display:inline-block;vertical-align:middle;flex-shrink:0;}
 .ni.on{color:var(--brand-dark);}
-.ni.on svg{fill:var(--brand-dark);}
+.ni.on svg{stroke:var(--brand-dark);}
 
 /* ── CARDS ── */
 .card{background:#fff;border-radius:16px;padding:14px 16px;box-shadow:var(--shadow);margin-bottom:12px;}
@@ -102,8 +103,8 @@ button,input,select,textarea{font-family:inherit;}
 .mutasi-item{background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:9px;box-shadow:var(--shadow);
   display:flex;align-items:center;gap:11px;}
 .mutasi-dot{width:36px;height:36px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;}
-.mutasi-dot.masuk{background:#E7F9EE;}
-.mutasi-dot.keluar{background:#FDEDEC;}
+.mutasi-dot.masuk{background:#E7F9EE;color:var(--green-dark);}
+.mutasi-dot.keluar{background:#FDEDEC;color:var(--red);}
 .mutasi-mid{flex:1;min-width:0;}
 .mutasi-nama{font-size:13.5px;font-weight:700;}
 .mutasi-sub{font-size:11px;color:var(--text-light);margin-top:2px;}
@@ -160,6 +161,7 @@ button,input,select,textarea{font-family:inherit;}
 .btn-outline{background:#fff;color:var(--text-mid);border:1.5px solid var(--border);}
 .btn-danger{background:var(--red);color:#fff;}
 .btn-sm{padding:8px 14px;font-size:12.5px;border-radius:9px;width:auto;display:inline-block;}
+.menu-btn{display:flex;align-items:center;justify-content:center;gap:8px;}
 
 .fab{position:fixed;bottom:82px;right:calc(50% - 240px + 18px);width:52px;height:52px;border-radius:50%;
   background:var(--brand);color:#fff;border:none;font-size:26px;box-shadow:0 6px 18px rgba(95,160,35,.35);

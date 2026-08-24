@@ -2,6 +2,29 @@
 // app.js — UI & navigasi WarungKu Internal (tersimpan di perangkat / localStorage)
 // ═══════════════════════════════════════════════════════════════
 
+// ═══════════════════ IKON (stroke, bukan emoji berwarna) ═══════════════════
+var ICON_PATHS = {
+  edit:          '<path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z"/>',
+  trash:         '<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>',
+  settings:      '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/>',
+  moreVertical:  '<circle cx="12" cy="5" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="19" r="1.4" fill="currentColor" stroke="none"/>',
+  alertTriangle: '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+  alertOctagon:  '<polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
+  checkCircle:   '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
+  clipboard:     '<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/>',
+  box:           '<path d="M20.5 7.3 12 3 3.5 7.3 12 11.6l8.5-4.3Z"/><path d="M3.5 7.3v9.4L12 21l8.5-4.3V7.3"/><path d="M12 11.6V21"/>',
+  dollarSign:    '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
+  fileText:      '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
+  arrowDownCircle:'<circle cx="12" cy="12" r="10"/><polyline points="8 12 12 16 16 12"/><line x1="12" y1="8" x2="12" y2="16"/>',
+  arrowUpCircle: '<circle cx="12" cy="12" r="10"/><polyline points="16 12 12 8 8 12"/><line x1="12" y1="16" x2="12" y2="8"/>',
+  store:         '<path d="M3 9.5 4.5 4h15L21 9.5"/><path d="M3 9.5a2.5 2.5 0 0 0 5 0 2.5 2.5 0 0 0 5 0 2.5 2.5 0 0 0 5 0 2.5 2.5 0 0 0 5 0"/><path d="M5 9.5V20h14V9.5"/><path d="M9.5 20v-6h5v6"/>',
+  download:      '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
+  logOut:        '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>'
+};
+function icon(name, size){
+  return '<svg class="icon-svg" width="'+(size||18)+'" height="'+(size||18)+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+(ICON_PATHS[name]||'')+'</svg>';
+}
+
 var STATE = {
   page: 'beranda',
   mutasiTab: 'masuk',
@@ -115,6 +138,37 @@ function showSuccessThenEnter(title, sub){
   setTimeout(enterApp, 900);
 }
 
+function openPengaturan(){
+  var s = getSession() || {};
+  var html = '<div class="sheet-title"><span>Pengaturan</span><span class="sheet-close" onclick="closeSheet()">&times;</span></div>';
+  html += '<div class="field"><label>Nama Pengguna</label><input id="set-nama" type="text" value="'+esc(s.nama||'')+'" placeholder="Nama kamu"></div>';
+  html += '<div class="field"><label>Nama Warung</label><input id="set-warung" type="text" value="'+esc(s.warung||'')+'" placeholder="Contoh: Warung Suka Maju"></div>';
+  html += '<div class="field-hint" style="margin-bottom:14px;">Username <b>'+esc(s.username||'')+'</b> tidak bisa diganti.</div>';
+  html += '<button class="btn btn-primary" id="btn-simpan-pengaturan" onclick="simpanPengaturan()">Simpan Perubahan</button>';
+  openSheet(html);
+}
+
+function simpanPengaturan(){
+  var nama = (document.getElementById('set-nama').value||'').trim();
+  var warung = (document.getElementById('set-warung').value||'').trim();
+  if(!nama || !warung){ toast('Nama pengguna & nama warung wajib diisi'); return; }
+
+  var s = getSession();
+  if(!s){ toast('Sesi tidak ditemukan, silakan login ulang'); return; }
+
+  var users = getUsers();
+  var user = users.filter(function(u){ return u.username === s.username; })[0];
+  if(user){ user.nama = nama; user.warung = warung; saveUsers(users); }
+
+  s.nama = nama; s.warung = warung;
+  saveSession(s);
+  STATE.session = s;
+
+  closeSheet();
+  toast('Pengaturan disimpan');
+  render();
+}
+
 function doLogout(){
   if(!confirm('Keluar dari akun ini?')) return;
   clearSession();
@@ -130,7 +184,7 @@ function enterApp(){
     .then(function(){ goPage('beranda'); })
     .catch(function(err){
       document.getElementById('content').innerHTML =
-        '<div class="empty-state"><div class="em">⚠️</div>' + esc(err.message || 'Gagal memuat data dari penyimpanan perangkat.') +
+        '<div class="empty-state"><div class="em" style="color:var(--red);">'+icon('alertTriangle',30)+'</div>' + esc(err.message || 'Gagal memuat data dari penyimpanan perangkat.') +
         '<div style="margin-top:14px;"><button class="btn btn-outline btn-sm" onclick="enterApp()">Coba Lagi</button></div></div>';
     });
 }
@@ -234,14 +288,14 @@ function renderBeranda(){
   if(habis.length || kritis.length){
     html += '<div class="sec-title">Peringatan Stok</div>';
     habis.forEach(function(b){
-      html += '<div class="alert-card danger"><div class="alert-emoji">⛔</div><div class="alert-text"><b>'+esc(b.nama)+'</b> stok habis (0 '+esc(b.satuan)+'). Segera lakukan restock.</div></div>';
+      html += '<div class="alert-card danger"><div class="alert-emoji" style="color:var(--red);">'+icon('alertOctagon',20)+'</div><div class="alert-text"><b>'+esc(b.nama)+'</b> stok habis (0 '+esc(b.satuan)+'). Segera lakukan restock.</div></div>';
     });
     kritis.forEach(function(b){
-      html += '<div class="alert-card"><div class="alert-emoji">⚠️</div><div class="alert-text"><b>'+esc(b.nama)+'</b> tersisa '+fmtNum(b.stok)+' '+esc(b.satuan)+' (batas minimum '+fmtNum(b.stokMin)+' '+esc(b.satuan)+').</div></div>';
+      html += '<div class="alert-card"><div class="alert-emoji" style="color:#B7791F;">'+icon('alertTriangle',20)+'</div><div class="alert-text"><b>'+esc(b.nama)+'</b> tersisa '+fmtNum(b.stok)+' '+esc(b.satuan)+' (batas minimum '+fmtNum(b.stokMin)+' '+esc(b.satuan)+').</div></div>';
     });
   } else {
     html += '<div class="sec-title">Peringatan Stok</div>';
-    html += '<div class="empty-state" style="padding:20px;"><div class="em">✅</div>Semua stok bahan baku aman.</div>';
+    html += '<div class="empty-state" style="padding:20px;"><div class="em" style="color:var(--green-dark);">'+icon('checkCircle',30)+'</div>Semua stok bahan baku aman.</div>';
   }
 
   html += '<div class="sec-title">Ringkasan Cepat</div>';
@@ -259,7 +313,7 @@ function renderBahan(){
   html += '<button class="btn btn-primary btn-sm" onclick="openBahanForm()">+ Tambah Bahan</button></div>';
 
   if(!DB.bahan.length){
-    html += '<div class="empty-state"><div class="em">📦</div>Belum ada data bahan baku.</div>';
+    html += '<div class="empty-state"><div class="em">'+icon('box',30)+'</div>Belum ada data bahan baku.</div>';
   } else {
     var sorted = DB.bahan.slice().sort(function(a,b){
       var order = {habis:0, kritis:1, aman:2};
@@ -273,8 +327,8 @@ function renderBahan(){
       html += '<div class="bahan-sub">Stok: '+fmtNum(b.stok)+' '+esc(b.satuan)+' &middot; Min: '+fmtNum(b.stokMin)+' '+esc(b.satuan)+'</div></div>';
       html += '<span class="badge '+st+'">'+label+'</span>';
       html += '<div class="bahan-actions">';
-      html += '<button class="icon-btn" onclick="openBahanForm('+b.id+')" title="Edit">✎</button>';
-      html += '<button class="icon-btn danger" onclick="konfirmasiHapusBahan('+b.id+')" title="Hapus">🗑</button>';
+      html += '<button class="icon-btn" onclick="openBahanForm('+b.id+')" title="Edit">'+icon('edit',15)+'</button>';
+      html += '<button class="icon-btn danger" onclick="konfirmasiHapusBahan('+b.id+')" title="Hapus">'+icon('trash',15)+'</button>';
       html += '</div></div>';
     });
   }
@@ -343,7 +397,7 @@ function renderMutasi(){
   html += '</div>';
 
   if(!DB.bahan.length){
-    return html + '<div class="empty-state"><div class="em">📦</div>Tambahkan bahan baku terlebih dahulu di menu Bahan Baku.</div>';
+    return html + '<div class="empty-state"><div class="em">'+icon('box',30)+'</div>Tambahkan bahan baku terlebih dahulu di menu Bahan Baku.</div>';
   }
 
   if(STATE.mutasiTab === 'masuk') html += formMasuk();
@@ -433,11 +487,11 @@ function simpanKeluar(){
 }
 
 function renderRiwayatMutasi(){
-  if(!DB.mutasi.length) return '<div class="empty-state"><div class="em"></div>Belum ada riwayat mutasi.</div>';
+  if(!DB.mutasi.length) return '<div class="empty-state"><div class="em">'+icon('clipboard',30)+'</div>Belum ada riwayat mutasi.</div>';
   var html = '';
   DB.mutasi.forEach(function(m){
     html += '<div class="mutasi-item">';
-    html += '<div class="mutasi-dot '+m.tipe+'">'+(m.tipe==='masuk'?'⬇️':'⬆️')+'</div>';
+    html += '<div class="mutasi-dot '+m.tipe+'">'+icon(m.tipe==='masuk'?'arrowDownCircle':'arrowUpCircle',18)+'</div>';
     html += '<div class="mutasi-mid"><div class="mutasi-nama">'+esc(m.bahanNama)+'</div>';
     if(m.tipe==='masuk'){
       html += '<div class="mutasi-sub">'+DB.fmtTgl(m.tgl)+' &middot; Barang Masuk'+(m.catatan?' &middot; '+esc(m.catatan):'')+'</div>';
@@ -449,7 +503,7 @@ function renderRiwayatMutasi(){
     html += '<div class="mutasi-val '+m.tipe+'">'+(m.tipe==='masuk'?'+':'-')+fmtNum(m.jumlah)+' '+esc(m.satuan)+'</div>';
     if(m.tipe==='masuk') html += '<div class="lr-sub" style="text-align:right;">'+DB.rp(m.totalHarga)+'</div>';
     html += '</div>';
-    html += '<button class="icon-btn danger" style="margin-left:4px;" onclick="konfirmasiHapusMutasi('+m.id+')" title="Hapus">🗑</button>';
+    html += '<button class="icon-btn danger" style="margin-left:4px;" onclick="konfirmasiHapusMutasi('+m.id+')" title="Hapus">'+icon('trash',15)+'</button>';
     html += '</div>';
   });
   return html;
@@ -493,15 +547,15 @@ function renderPemasukan(){
 
   html += '<div class="sec-title">Riwayat Pemasukan</div>';
   if(!DB.pemasukan.length){
-    html += '<div class="empty-state"><div class="em"></div>Belum ada data pemasukan.</div>';
+    html += '<div class="empty-state"><div class="em">'+icon('dollarSign',30)+'</div>Belum ada data pemasukan.</div>';
   } else {
     DB.pemasukan.forEach(function(p){
       html += '<div class="mutasi-item">';
-      html += '<div class="mutasi-dot masuk"></div>';
+      html += '<div class="mutasi-dot masuk">'+icon('dollarSign',18)+'</div>';
       html += '<div class="mutasi-mid"><div class="mutasi-nama">'+esc(p.shift)+'</div>';
       html += '<div class="mutasi-sub">'+DB.fmtTgl(p.tgl)+(p.catatan?' &middot; '+esc(p.catatan):'')+'</div></div>';
       html += '<div class="mutasi-val masuk">'+DB.rp(p.jumlah)+'</div>';
-      html += '<button class="icon-btn danger" style="margin-left:4px;" onclick="konfirmasiHapusPemasukan('+p.id+')">🗑</button>';
+      html += '<button class="icon-btn danger" style="margin-left:4px;" onclick="konfirmasiHapusPemasukan('+p.id+')">'+icon('trash',15)+'</button>';
       html += '</div>';
     });
   }
@@ -544,11 +598,11 @@ function renderPengeluaran(){
   html += '<div class="sec-title">Belanja Bahan (Otomatis dari Barang Masuk)</div>';
   var belanja = DB.mutasi.filter(function(m){ return m.tipe==='masuk'; });
   if(!belanja.length){
-    html += '<div class="empty-state"><div class="em"></div>Belum ada belanja bahan tercatat.</div>';
+    html += '<div class="empty-state"><div class="em">'+icon('fileText',30)+'</div>Belum ada belanja bahan tercatat.</div>';
   } else {
     belanja.slice(0,10).forEach(function(m){
       html += '<div class="mutasi-item">';
-      html += '<div class="mutasi-dot keluar"></div>';
+      html += '<div class="mutasi-dot keluar">'+icon('fileText',18)+'</div>';
       html += '<div class="mutasi-mid"><div class="mutasi-nama">'+esc(m.bahanNama)+'</div>';
       html += '<div class="mutasi-sub">'+DB.fmtTgl(m.tgl)+' &middot; Otomatis dari Barang Masuk</div></div>';
       html += '<div class="mutasi-val keluar">'+DB.rp(m.totalHarga)+'</div>';
@@ -559,15 +613,15 @@ function renderPengeluaran(){
 
   html += '<div class="sec-title">Pengeluaran Operasional Lain</div>';
   if(!DB.pengeluaranManual.length){
-    html += '<div class="empty-state"><div class="em"></div>Belum ada pengeluaran operasional lain.</div>';
+    html += '<div class="empty-state"><div class="em">'+icon('clipboard',30)+'</div>Belum ada pengeluaran operasional lain.</div>';
   } else {
     DB.pengeluaranManual.forEach(function(p){
       html += '<div class="mutasi-item">';
-      html += '<div class="mutasi-dot keluar"></div>';
+      html += '<div class="mutasi-dot keluar">'+icon('clipboard',18)+'</div>';
       html += '<div class="mutasi-mid"><div class="mutasi-nama">'+esc(p.kategori)+'</div>';
       html += '<div class="mutasi-sub">'+DB.fmtTgl(p.tgl)+(p.catatan?' &middot; '+esc(p.catatan):'')+'</div></div>';
       html += '<div class="mutasi-val keluar">'+DB.rp(p.jumlah)+'</div>';
-      html += '<button class="icon-btn danger" style="margin-left:4px;" onclick="konfirmasiHapusPengeluaran('+p.id+')">🗑</button>';
+      html += '<button class="icon-btn danger" style="margin-left:4px;" onclick="konfirmasiHapusPengeluaran('+p.id+')">'+icon('trash',15)+'</button>';
       html += '</div>';
     });
   }

@@ -74,7 +74,7 @@
         <div class="topbar-title" id="topbar-title">WarungKu Internal</div>
         <div class="topbar-sub" id="topbar-sub">—</div>
       </div>
-      <button class="topbar-icon-btn" onclick="openMenu()" title="Menu">⋮</button>
+      <button class="topbar-icon-btn" onclick="openMenu()" title="Menu"><svg width="18" height="18" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="19" r="1.6" fill="currentColor"/></svg></button>
     </div>
     <div id="topbar-stats"></div>
   </div>
@@ -83,19 +83,19 @@
 
   <div class="bnav">
     <div class="ni on" data-page="beranda">
-      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10a1 1 0 0 0 1 1h3v-6h6v6h3a1 1 0 0 0 1-1V10"/></svg>
       Beranda
     </div>
     <div class="ni" data-page="bahan">
-      <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v3.01c0 .72.43 1.34 1 1.72V20c0 1.1 1.1 2 2 2h14c.9 0 2-.9 2-2V8.72c.57-.38 1-.99 1-1.72V4c0-1.1-.9-2-2-2zm-5 12H9v-2h6v2zm5-7H4V4h16v3z"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 7.3 12 3 3.5 7.3 12 11.6l8.5-4.3Z"/><path d="M3.5 7.3v9.4L12 21l8.5-4.3V7.3"/><path d="M12 11.6V21"/></svg>
       Bahan Baku
     </div>
     <div class="ni" data-page="mutasi">
-      <svg viewBox="0 0 24 24"><path d="M9 3L5 6.99h3V14h2V6.99h3L9 3zm7 14.01V10h-2v7.01h-3L15 21l4-3.99h-3z"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3v11"/><path d="M13 10l4 4 4-4"/><path d="M7 21V10"/><path d="M3 14l4-4 4 4"/></svg>
       Mutasi Stok
     </div>
     <div class="ni" data-page="keuangan">
-      <svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h13a1 1 0 0 1 1 1v2"/><path d="M3 7v11a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-5"/><path d="M16 12h4a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-4a2 2 0 0 1 0-4Z"/></svg>
       Keuangan
     </div>
   </div>
@@ -127,9 +127,10 @@ function openMenu(){
     html += '<div class="field-hint" style="margin-bottom:14px;">Masuk sebagai <b>'+esc(s.nama||s.username)+'</b> &middot; '+esc(s.warung||'-')+'</div>';
   }
   html += '<div class="field-hint" style="margin-bottom:14px;">Data tersimpan langsung di penyimpanan browser perangkat ini (localStorage). Tidak tersinkron otomatis ke perangkat lain.</div>';
-  html += '<button class="btn btn-outline" style="margin-bottom:10px;" onclick="eksporData()">⬇ Ekspor Data (Backup JSON)</button>';
-  html += '<button class="btn btn-outline" style="margin-bottom:10px;" onclick="doLogout()">Keluar Akun</button>';
-  html += '<button class="btn btn-danger" onclick="resetData()">Reset Semua Data</button>';
+  html += '<button class="btn btn-outline menu-btn" style="margin-bottom:10px;" onclick="openPengaturan()">'+icon('settings',16)+' Pengaturan</button>';
+  html += '<button class="btn btn-outline menu-btn" style="margin-bottom:10px;" onclick="eksporData()">'+icon('download',16)+' Ekspor Data (Backup JSON)</button>';
+  html += '<button class="btn btn-outline menu-btn" style="margin-bottom:10px;" onclick="doLogout()">'+icon('logOut',16)+' Keluar Akun</button>';
+  html += '<button class="btn btn-danger menu-btn" onclick="resetData()">'+icon('trash',16)+' Reset Semua Data</button>';
   openSheet(html);
 }
 </script>
