@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════
-// app.js — UI & navigasi WarungKu Internal (terhubung ke SQLite via API PHP)
+// app.js — UI & navigasi WarungKu Internal (tersimpan di perangkat / localStorage)
 // ═══════════════════════════════════════════════════════════════
 
 var STATE = {
@@ -12,11 +12,29 @@ var STATE = {
 
 // ═══════════════════ AUTH: SPLASH, LOGIN, SIGNUP ═══════════════════
 var LS_KEY_SESSION = 'warungku_internal_session_v1';
+var LS_KEY_USERS = 'warungku_internal_users_v1';
 
 function getSession(){ try{ return JSON.parse(localStorage.getItem(LS_KEY_SESSION)||'null'); }catch(e){ return null; } }
 function saveSession(s){ localStorage.setItem(LS_KEY_SESSION, JSON.stringify(s)); }
 function clearSession(){ localStorage.removeItem(LS_KEY_SESSION); }
 function isLoggedIn(){ return !!getSession(); }
+
+function getUsers(){ try{ return JSON.parse(localStorage.getItem(LS_KEY_USERS)||'[]'); }catch(e){ return []; } }
+function saveUsers(u){ localStorage.setItem(LS_KEY_USERS, JSON.stringify(u)); }
+
+// Hash password dengan Web Crypto (SHA-256) — supaya tidak tersimpan polos
+// di localStorage. Ini bukan pengganti keamanan server sungguhan, tapi
+// cukup untuk aplikasi internal satu perangkat seperti ini.
+function hashPassword(plain){
+  if(window.crypto && window.crypto.subtle){
+    var enc = new TextEncoder().encode(plain);
+    return window.crypto.subtle.digest('SHA-256', enc).then(function(buf){
+      return Array.prototype.map.call(new Uint8Array(buf), function(b){ return ('0'+b.toString(16)).slice(-2); }).join('');
+    });
+  }
+  // Fallback kalau Web Crypto tidak tersedia (browser sangat lama / http non-secure)
+  return Promise.resolve('plain:' + plain);
+}
 
 function showAuthView(name){
   ['splash','login','signup','success','app'].forEach(function(v){
@@ -36,17 +54,18 @@ function doLogin(){
     errEl.style.display = 'block'; return;
   }
 
-  apiPost('auth.php?action=login', {username: username, password: password})
-    .then(function(res){
-      saveSession(res.user);
-      document.getElementById('login-username').value = '';
-      document.getElementById('login-password').value = '';
-      showSuccessThenEnter('Login Berhasil!', 'Selamat bekerja, ' + (res.user.nama || res.user.username) + '!');
-    })
-    .catch(function(err){
-      errEl.textContent = '❌ ' + err.message;
+  hashPassword(password).then(function(hash){
+    var user = getUsers().filter(function(u){ return u.username === username; })[0];
+    if(!user || user.passwordHash !== hash){
+      errEl.textContent = '❌ Username atau password salah, atau akun belum terdaftar.';
       errEl.style.display = 'block';
-    });
+      return;
+    }
+    saveSession({username: user.username, nama: user.nama, warung: user.warung});
+    document.getElementById('login-username').value = '';
+    document.getElementById('login-password').value = '';
+    showSuccessThenEnter('Login Berhasil!', 'Selamat bekerja, ' + (user.nama || user.username) + '!');
+  });
 }
 
 function doSignup(){
@@ -75,15 +94,18 @@ function doSignup(){
     errEl.style.display = 'block'; return;
   }
 
-  apiPost('auth.php?action=signup', {nama: nama, warung: warung, username: username, password: password})
-    .then(function(res){
-      saveSession(res.user);
-      showSuccessThenEnter('Pendaftaran Sukses!', 'Warung "' + warung + '" siap dikelola.');
-    })
-    .catch(function(err){
-      errEl.textContent = '❌ ' + err.message;
-      errEl.style.display = 'block';
-    });
+  var users = getUsers();
+  if(users.some(function(u){ return u.username === username; })){
+    errEl.textContent = '❌ Username sudah dipakai, pilih username lain.';
+    errEl.style.display = 'block'; return;
+  }
+
+  hashPassword(password).then(function(hash){
+    users.push({username: username, passwordHash: hash, nama: nama, warung: warung});
+    saveUsers(users);
+    saveSession({username: username, nama: nama, warung: warung});
+    showSuccessThenEnter('Pendaftaran Sukses!', 'Warung "' + warung + '" siap dikelola.');
+  });
 }
 
 function showSuccessThenEnter(title, sub){
@@ -104,12 +126,11 @@ function doLogout(){
 function enterApp(){
   STATE.session = getSession();
   showAuthView('app');
-  toast('Menghubungkan ke database…');
   DB.loadAll()
     .then(function(){ goPage('beranda'); })
     .catch(function(err){
       document.getElementById('content').innerHTML =
-        '<div class="empty-state"><div class="em">🔌</div>' + esc(err.message) +
+        '<div class="empty-state"><div class="em">⚠️</div>' + esc(err.message || 'Gagal memuat data dari penyimpanan perangkat.') +
         '<div style="margin-top:14px;"><button class="btn btn-outline btn-sm" onclick="enterApp()">Coba Lagi</button></div></div>';
     });
 }

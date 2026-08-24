@@ -1,4 +1,4 @@
-const CACHE_NAME = 'warungku-internal-v33';
+const CACHE_NAME = 'warungku-internal-v32';
 const ASSETS = [
   './index.html',
   './css/style.css',
@@ -23,7 +23,17 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
+
+  // Network-first: selalu coba ambil versi terbaru dulu.
+  // Cache hanya dipakai sebagai cadangan kalau benar-benar offline,
+  // supaya update kode ke depannya tidak pernah "tersangkut" di cache lama.
   e.respondWith(
-    caches.match(e.request).then((cached) => cached || fetch(e.request))
+    fetch(e.request)
+      .then((resp) => {
+        var copy = resp.clone();
+        caches.open(CACHE_NAME).then((c) => c.put(e.request, copy));
+        return resp;
+      })
+      .catch(() => caches.match(e.request))
   );
 });
