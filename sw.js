@@ -1,4 +1,4 @@
-const CACHE_NAME = 'warungku-internal-v65';
+const CACHE_NAME = 'warungku-internal-v68';
 const ASSETS = [
   './index.html',
   './css/style.css',
