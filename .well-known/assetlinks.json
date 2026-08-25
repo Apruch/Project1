@@ -3,6 +3,6 @@
       "target": {
         "namespace": "android_app",
         "package_name": "io.github.apruch.twa",
-        "sha256_cert_fingerprints": ["D4:84:1E:56:06:68:8B:1A:C8:70:C5:D1:16:6C:2E:A0:93:92:F3:E5:63:83:DD:06:0E:2F:AC:CA:74:41:11:8F"]
+        "sha256_cert_fingerprints": ["B5:86:02:0A:28:E1:A9:11:0F:09:BD:4B:0D:63:94:6D:A7:43:A6:98:77:25:34:D8:5D:AF:A4:AA:09:E4:2F:14"]
       }
     }]
