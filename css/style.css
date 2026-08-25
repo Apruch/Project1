@@ -12,7 +12,7 @@
 }
 html,body{height:100%;}
 body{
-  font-family:'Poppins',sans-serif; background:var(--gray-bg); color:var(--text);
+  font-family:'Plus Jakarta Sans',sans-serif; background:var(--gray-bg); color:var(--text);
   -webkit-tap-highlight-color:transparent;
 }
 button,input,select,textarea{font-family:inherit;}
@@ -219,10 +219,32 @@ button,input,select,textarea{font-family:inherit;}
 .splash-dot-loader{margin-top:30px;display:flex;gap:7px;justify-content:center;}
 .splash-dot{width:8px;height:8px;border-radius:50%;background:var(--brand);}
 
-.success-check{width:64px;height:64px;border-radius:50%;background:var(--brand);
-  color:#fff;font-size:32px;font-weight:800;display:flex;align-items:center;justify-content:center;
-  margin:0 auto 18px;}
-.success-title-text{font-size:20px;font-weight:800;color:var(--text);}
+/* ═══════════ Halaman Sukses (setelah login/daftar) ═══════════ */
+.success-badge{position:relative;width:84px;height:84px;margin:0 auto 22px;display:flex;align-items:center;justify-content:center;}
+
+.success-ring{position:absolute;inset:0;border-radius:50%;border:2px solid rgba(255,255,255,.9);
+  opacity:0;animation:successRing 1.4s ease-out .35s 2;}
+.success-ring-2{animation-delay:.75s;}
+
+.success-check-svg{position:relative;width:72px;height:72px;z-index:1;
+  animation:successPop .5s cubic-bezier(.34,1.56,.64,1) both;
+  filter:drop-shadow(0 6px 14px rgba(20,30,10,.18));}
+.success-check-circle{ fill:#fff; }
+.success-check-mark{
+  stroke:var(--brand-dark);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:36;stroke-dashoffset:36;
+  animation:successDraw .35s ease-out .4s forwards;
+}
+
+.success-title-text{font-size:21px;font-weight:800;color:#fff;
+  opacity:0;animation:successFadeUp .5s ease .7s forwards;}
+.success-sub-text{color:rgba(255,255,255,.85);font-size:13px;margin-top:8px;
+  opacity:0;animation:successFadeUp .5s ease .85s forwards;}
+
+@keyframes successPop{0%{transform:scale(.4);opacity:0;}60%{transform:scale(1.08);opacity:1;}100%{transform:scale(1);opacity:1;}}
+@keyframes successDraw{to{stroke-dashoffset:0;}}
+@keyframes successRing{0%{transform:scale(.8);opacity:.7;}100%{transform:scale(1.9);opacity:0;}}
+@keyframes successFadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 
 /* Satu-satunya animasi di seluruh aplikasi: logo muncul saat splash/login/signup dibuka */
 @keyframes logoPop{0%{transform:scale(.6);opacity:0;}60%{transform:scale(1.08);opacity:1;}100%{transform:scale(1);opacity:1;}}

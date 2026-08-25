@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WarungKu Internal — Operasional Warung</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icons/launchericon-192x192.png">
@@ -61,9 +61,16 @@
 
 <!-- ═══════════ SUKSES (transisi setelah login/daftar) ═══════════ -->
 <div class="auth-screen splash-screen" id="view-success" style="display:none;">
-  <div class="success-check">✓</div>
+  <div class="success-badge">
+    <div class="success-ring"></div>
+    <div class="success-ring success-ring-2"></div>
+    <svg class="success-check-svg" viewBox="0 0 52 52">
+      <circle class="success-check-circle" cx="26" cy="26" r="25"/>
+      <path class="success-check-mark" fill="none" d="M14 27l7 7 16-16"/>
+    </svg>
+  </div>
   <div class="success-title-text" id="success-title">Berhasil!</div>
-  <div class="splash-tagline" id="success-sub">Mohon tunggu sebentar ya.</div>
+  <div class="success-sub-text" id="success-sub">Mohon tunggu sebentar ya.</div>
 </div>
 
 <!-- ═══════════ APLIKASI UTAMA ═══════════ -->

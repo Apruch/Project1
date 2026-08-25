@@ -7,7 +7,7 @@
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#F1F1F7",
-  "theme_color": "#F1F1F7",
+  "theme_color": "#7BC133",
   "lang": "id",
   "icons": [
     {"src":"icons/launchericon-48x48.png","sizes":"48x48","type":"image/png","purpose":"any maskable"},
