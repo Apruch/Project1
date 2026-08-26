@@ -12,13 +12,20 @@
 }
 html,body{height:100%;}
 body{
-  font-family:'Plus Jakarta Sans',sans-serif; background:var(--gray-bg); color:var(--text);
+  font-family:'Plus Jakarta Sans',sans-serif; background:#0A0A0A; color:var(--text);
   -webkit-tap-highlight-color:transparent;
 }
 button,input,select,textarea{font-family:inherit;}
 
-.app{max-width:480px;margin:0 auto;min-height:100vh;background:var(--gray-bg);
-  display:flex;flex-direction:column;position:relative;}
+.app{max-width:480px;margin:0 auto;min-height:100vh;background-color: var(--gray-bg); 
+  background-image: radial-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 1px);
+  background-size: 14px 14px; /* Atur angka ini untuk mengubah jarak antar bintik */
+  
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow: 0 0 30px rgba(0,0,0,0.15); 
+}
 
 /* ── HEADER ── */
 .topbar{background:var(--surface);color:var(--text);padding:22px 20px 20px;flex-shrink:0;
@@ -177,7 +184,7 @@ button,input,select,textarea{font-family:inherit;}
 .sheet-title{font-size:16px;font-weight:800;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;}
 .sheet-close{cursor:pointer;color:var(--text-light);font-size:20px;line-height:1;}
 
-.empty-state{text-align:center;padding:40px 20px;color:var(--text-light);font-size:13px;}
+.empty-state{text-align:center;padding:40px 20px;color:#F1f1f7;font-size:13px;}
 .empty-state .em{font-size:34px;margin-bottom:10px;}
 
 /* Chip filter (rentang laporan) */
